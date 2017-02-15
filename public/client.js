@@ -88,16 +88,26 @@ function init() {
 
     var prevTime = performance.now();
     var velocity = new THREE.Vector3();
+    var mouse = new THREE.Vector2();
+
+    function onMouseMove( event ) {
+
+    	// calculate mouse position in normalized device coordinates
+    	// (-1 to +1) for both components
+
+    	mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    	mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+
+    }
 
     function init() {
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
 
         scene = new THREE.Scene();
-        scene.fog = new THREE.Fog(0xffffff, 0, 750);
+        scene.fog = new THREE.Fog(0x000000, 0, 100);
 
-        var light = new THREE.HemisphereLight(0xeeeeff, 0x777788, 0.75);
-        light.position.set(0.5, 1, 0.75);
-        scene.add(light);
+        var light = new THREE.PointLight( 0xffffff, 0.6, 200, 2 );
+        camera.add(light);
 
         controls = new THREE.PointerLockControls(camera);
         scene.add(controls.getObject());
@@ -158,6 +168,19 @@ function init() {
 
         document.addEventListener('keydown', onKeyDown, false);
         document.addEventListener('keyup', onKeyUp, false);
+        window.addEventListener( 'mousemove', onMouseMove, false );
+
+        this.rays = [
+          new THREE.Vector3(0, 0, 1),
+          new THREE.Vector3(1, 0, 1),
+          new THREE.Vector3(1, 0, 0),
+          new THREE.Vector3(1, 0, -1),
+          new THREE.Vector3(0, 0, -1),
+          new THREE.Vector3(-1, 0, -1),
+          new THREE.Vector3(-1, 0, 0),
+          new THREE.Vector3(-1, 0, 1),
+          new THREE.Vector3(0, -1, 0)
+        ];
 
         raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, 10);
 
@@ -175,9 +198,9 @@ function init() {
 
         for (var i = 0, l = geometry.faces.length; i < l; i++) {
             var face = geometry.faces[i];
-            face.vertexColors[0] = new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
-            face.vertexColors[1] = new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
-            face.vertexColors[2] = new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
+            face.vertexColors[0] = new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.75, 0.1);
+            face.vertexColors[1] = new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.75, 0.1);
+            face.vertexColors[2] = new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.75, 0.1);
         }
 
         material = new THREE.MeshBasicMaterial({
@@ -198,8 +221,8 @@ function init() {
             face.vertexColors[2] = new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
         }
 
-        for (var i = 0; i < 500; i++) {
-            material = new THREE.MeshPhongMaterial({
+        for (var i = 0; i < 1000; i++) {
+            material = new THREE.MeshPhysicalMaterial({
                 specular: 0xffffff,
                 shading: THREE.FlatShading,
                 vertexColors: THREE.VertexColors
@@ -217,7 +240,7 @@ function init() {
         }
 
         renderer = new THREE.WebGLRenderer();
-        renderer.setClearColor(0xffffff);
+        renderer.setClearColor(0x000000);
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
@@ -261,9 +284,23 @@ function init() {
                 canJump = true;
             }
 
+            raycaster.setFromCamera( mouse, camera );
+
+            // calculate objects intersecting the picking ray
+          	var intersects = raycaster.intersectObjects( objects );
+
+          	for ( var i = 0; i < intersects.length; i++ ) {
+
+          		// intersects[ i ].object.material.color.set( 0xff0000 );
+              velocity.x = 0;
+              velocity.z = 0;
+          	}
+
+
             controls.getObject().translateX(velocity.x * delta);
             controls.getObject().translateY(velocity.y * delta);
             controls.getObject().translateZ(velocity.z * delta);
+
 
             if (controls.getObject().position.y < 10) {
                 velocity.y = 0;
