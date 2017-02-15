@@ -203,7 +203,7 @@ function init() {
         scene = new THREE.Scene();
         scene.fog = new THREE.Fog(0x000000, 0, 100);
 
-        var light = new THREE.PointLight( 0xffffff, 0.6, 200, 2 );
+        var light = new THREE.PointLight( 0xffffff, 0.2, 100, 5 );
         camera.add(light);
 
         controls = new THREE.PointerLockControls(camera);
@@ -335,11 +335,7 @@ function init() {
         var wallGeometryX = new THREE.BoxGeometry(tileWidth + wallWidth, wallHeight, wallWidth);
         var wallGeometryZ = new THREE.BoxGeometry(wallWidth, wallHeight, tileWidth + wallWidth);
 
-        var wallMaterial = new THREE.MeshPhongMaterial({
-            specular: 0xffffff,
-            shading: THREE.FlatShading,
-            vertexColors: THREE.VertexColors
-        });
+        var wallMaterial = new THREE.MeshPhysicalMaterial();
 
         // function to add one wall piece - extending from (x1,z1) to
         // (x2,z2) - to `floor'; it is assumed that either `x1' equals `x2'
