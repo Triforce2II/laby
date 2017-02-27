@@ -415,27 +415,13 @@ function initWalls() {
               canJump = true;
             }
 
-            raycaster.set(camera.getWorldPosition(), camera.getWorldDirection());
-            raycaster.ray.direction.y = 0;
-
-            // TODO: stop moving when looking upwards.. awkward glitch ;D
-            let yAxis = new THREE.Vector3(0, 1, 0);
-            // rotate direction vector depending on movement
-            if (moveLeft && moveForward) {
-              raycaster.ray.direction.applyAxisAngle(yAxis, Math.PI / 4);
-            } else if (moveLeft && moveBackward) {
-              raycaster.ray.direction.applyAxisAngle(yAxis, Math.PI - Math.PI / 4);
-            } else if (moveRight && moveForward) {
-              raycaster.ray.direction.applyAxisAngle(yAxis, (2 * Math.PI) - (Math.PI / 4));
-            } else if (moveRight && moveBackward) {
-              raycaster.ray.direction.applyAxisAngle(yAxis, Math.PI + Math.PI / 4);
-            } else if (moveLeft) {
-              raycaster.ray.direction.applyAxisAngle(yAxis, Math.PI / 2);
-            } else if (moveRight) {
-              raycaster.ray.direction.applyAxisAngle(yAxis, Math.PI + Math.PI / 2);
-            }else if (moveBackward) {
-              raycaster.ray.direction.applyAxisAngle(yAxis, Math.PI);
-            }
+            var nextPosition = controls.getObject().clone();
+            nextPosition.translateX(velocity.x * delta);
+            nextPosition.translateY(velocity.y * delta);
+            nextPosition.translateZ(velocity.z * delta);
+            var directionToNextPos = new THREE.Vector3();
+            directionToNextPos.subVectors(nextPosition.position, camera.getWorldPosition()).normalize();
+            raycaster.set(camera.getWorldPosition(), directionToNextPos);
 
             // Debugging arrow which shows direction
             // if (arrow)
