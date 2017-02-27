@@ -31,7 +31,7 @@ wss.on('connection', function(ws) {
         } else if (json.type == 'finished') {
             wss.broadcast(message);
         }
-        console.log('received: %s', message);
+        //console.log('received: %s', message);
     });
     var id = playerCounter;
     ++playerCounter;

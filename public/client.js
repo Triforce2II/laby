@@ -37,7 +37,7 @@ function init() {
             } else if (json.type === 'position') {
                 playerLocations = json.data;
 
-                console.log(message);
+                //console.log(message);
                 var i = Object.keys(playerLocations).length;
                 while (players < i) {
                     ++players;
@@ -54,7 +54,7 @@ function init() {
             } else if (json.type === 'finished') {
                 alert("Player: " + json.player + " has found the exit in " + json.seconds + " seconds!");
             } else {
-                console.log(json.data);
+                //console.log(json.data);
             }
         } catch (e) {
             console.log('Error Message: ', e);
@@ -439,7 +439,7 @@ function initWalls() {
 
             // Debugging arrow which shows direction
             // if (arrow)
-            //   scene.remove ( arrow );
+            // scene.remove ( arrow );
             // arrow = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 10, 0xffffff );
             // scene.add( arrow );
 
