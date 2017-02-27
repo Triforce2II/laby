@@ -1,11 +1,17 @@
 var conf = require("./config.json");
+var uuid = require("node-uuid");
+var WebSocket = require("ws");
 var WebSocketServer = require("ws").Server;
 var myHttp = require("http");
 var express = require("express");
 var app = express();
 var server = myHttp.createServer(app).listen(conf.port);
-var number = 0;
 var playerLocations = [];
+var playerCounter = 0;
+var tileWidth = 40;
+var floorWidth = 600;
+var tilesPerRow = floorWidth / tileWidth;
+var walls = createLabyrinth(tilesPerRow, tilesPerRow);
 
 app.use(express.static(__dirname + "/public"));
 
@@ -20,38 +26,62 @@ var wss = new WebSocketServer({
 wss.on('connection', function(ws) {
     ws.on('message', function(message) {
         var json = JSON.parse(message);
-        if(json.type == 'position'){
-
-            ws.send(JSON.stringify({type: ''}));
+        if (json.type == 'position') {
+            playerLocations[json.player] = json.data;
+        } else if (json.type == 'finished') {
+            wss.broadcast(message);
         }
         console.log('received: %s', message);
     });
-    ws.send(JSON.stringify({type: 'walls', player: number, data: walls}));
-    ++number;
+    var id = playerCounter;
+    ++playerCounter;
+    playerLocations[id] = {
+        x: 0,
+        y: 10,
+        z: 0
+    };
+    ws.send(JSON.stringify({
+        type: 'walls',
+        player: id,
+        location: playerLocations,
+        data: walls
+    }));
 });
 
-// Copyright (c) 2015, Dr. Edmund Weitz.  All rights reserved.
-// global array which holds a four-element array per x/y coordinate
-// pair where the four values are booleans for the North, South, West,
-// and East (in this order) walls
-var tileWidth = 40;
-var floorWidth = 600;
-var tilesPerRow = floorWidth / tileWidth;
-var walls = createLabyrinth(tilesPerRow, tilesPerRow);
+wss.broadcast = function broadcast(data) {
+    wss.clients.forEach(function each(client) {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(data);
+        }
+    });
+};
+
+setInterval(sendLocations, 10);
+
+function sendLocations() {
+    wss.broadcast(JSON.stringify({
+        type: 'position',
+        data: playerLocations
+    }));
+}
 
 function randomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
-// sets up the array `walls'
 function erectWalls(width, height) {
     walls = [];
     for (var x = 0; x < width; x++) {
         walls[x] = [];
-        for (var y = 0; y < height; y++)
-            walls[x][y] = [true, true, true, true];
+        for (var y = 0; y < height; y++) {
+            walls[x][y] = [true, true, true, true, false, false];
+            if (Math.random() > 0.8) {
+                walls[x][y] = [true, true, true, true, true, false];
+            }
+        }
     }
-    var jo = 0;
+    //walls[0][0][5] = true; zum testen
+    walls[width - 1][height - 1][5] = true;
 }
 
 // checks if all four walls of the cell (x,y) are intact
