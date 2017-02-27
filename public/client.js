@@ -72,6 +72,7 @@ function initWalls() {
     var torches = [];
     var light;
     var raycaster;
+    var arrow;
     var blocker = document.getElementById('blocker');
     var instructions = document.getElementById('instructions');
     var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
@@ -132,14 +133,6 @@ function initWalls() {
     var sprint = false;
     var prevTime = performance.now();
     var velocity = new THREE.Vector3();
-    var mouse = new THREE.Vector2();
-
-    function onMouseMove(event) {
-        // calculate mouse position in normalized device coordinates
-        // (-1 to +1) for both components
-        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    }
 
     function initMove() {
         var floorHeight = 1;
@@ -213,7 +206,6 @@ function initWalls() {
 
         document.addEventListener('keydown', onKeyDown, false);
         document.addEventListener('keyup', onKeyUp, false);
-        window.addEventListener('mousemove', onMouseMove, false);
 
         this.rays = [
             new THREE.Vector3(0, 0, 1),
@@ -396,11 +388,6 @@ function initWalls() {
         requestAnimationFrame(animate);
 
         if (controlsEnabled) {
-            raycaster.ray.origin.copy(controls.getObject().position);
-            raycaster.ray.origin.y -= 10;
-
-            var intersections = raycaster.intersectObjects(objects);
-            var isOnObject = intersections.length > 0;
             var time = performance.now();
             var delta = (time - prevTime) / 1000;
             var multi = 1;
@@ -415,20 +402,53 @@ function initWalls() {
             if (moveLeft) velocity.x -= 400.0 * delta * multi;
             if (moveRight) velocity.x += 400.0 * delta * multi;
 
+            raycaster.ray.origin.copy(controls.getObject().position);
+            raycaster.ray.origin.y -= 10;
+
+            var intersections = raycaster.intersectObjects(objects);
+            var intersectTorches = raycaster.intersectObjects(torches);
+            var intersectDoor = raycaster.intersectObjects(doorEnd);
+            var isOnObject = intersections.length > 0;
+
             if (isOnObject === true) {
-                velocity.y = Math.max(0, velocity.y);
-                canJump = true;
+              velocity.y = Math.max(0, velocity.y);
+              canJump = true;
             }
 
-            raycaster.setFromCamera(mouse, camera);
+            raycaster.set(camera.getWorldPosition(), camera.getWorldDirection());
+            raycaster.ray.direction.y = 0;
+
+            // TODO: stop moving when looking upwards.. awkward glitch ;D
+            let yAxis = new THREE.Vector3(0, 1, 0);
+            // rotate direction vector depending on movement
+            if (moveLeft && moveForward) {
+              raycaster.ray.direction.applyAxisAngle(yAxis, Math.PI / 4);
+            } else if (moveLeft && moveBackward) {
+              raycaster.ray.direction.applyAxisAngle(yAxis, Math.PI - Math.PI / 4);
+            } else if (moveRight && moveForward) {
+              raycaster.ray.direction.applyAxisAngle(yAxis, (2 * Math.PI) - (Math.PI / 4));
+            } else if (moveRight && moveBackward) {
+              raycaster.ray.direction.applyAxisAngle(yAxis, Math.PI + Math.PI / 4);
+            } else if (moveLeft) {
+              raycaster.ray.direction.applyAxisAngle(yAxis, Math.PI / 2);
+            } else if (moveRight) {
+              raycaster.ray.direction.applyAxisAngle(yAxis, Math.PI + Math.PI / 2);
+            }else if (moveBackward) {
+              raycaster.ray.direction.applyAxisAngle(yAxis, Math.PI);
+            }
+
+            // Debugging arrow which shows direction
+            // if (arrow)
+            //   scene.remove ( arrow );
+            // arrow = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 10, 0xffffff );
+            // scene.add( arrow );
 
             // calculate objects intersecting the picking ray
             var intersects = raycaster.intersectObjects(objects);
-            var intersectTorches = raycaster.intersectObjects(torches);
-            var intersectDoor = raycaster.intersectObjects(doorEnd);
 
             for (var i = 0; i < intersects.length; i++) {
-                // intersects[ i ].object.material.color.set( 0xff0000 );
+                // Debug color switching to see collision
+                // intersects[ i ].object.material.color.set(Math.random() * 0xffffff);
                 velocity.x = 0;
                 velocity.z = 0;
             }
