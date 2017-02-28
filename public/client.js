@@ -63,7 +63,7 @@ function init() {
 }
 
 function initWalls() {
-    var doorEnd = [];
+    var doorEnd;
     var camera, renderer;
     var geometry, material, mesh;
     var controls;
@@ -263,12 +263,11 @@ function initWalls() {
                     wall.position.z = z1 - tileWidth / 2;
                     if (labyWalls[i][j][5]) {
                         labyWalls[i][j][5] = false;
-                        var door = new THREE.Mesh(doorGeometryX, doorMaterial);
-                        door.position.x = x1;
-                        door.position.z = z1 - tileWidth / 2;
-                        door.position.y = (wallHeight / 2) - 18;
-                        scene.add(door);
-                        doorEnd.push(door);
+                        doorEnd = new THREE.Mesh(doorGeometryX, doorMaterial);
+                        doorEnd.position.x = x1;
+                        doorEnd.position.z = z1 - tileWidth / 2;
+                        doorEnd.position.y = (wallHeight / 2) - 18;
+                        scene.add(doorEnd);
                     }
                 } else if (z1 < z2) {
                     wall = new THREE.Mesh(wallGeometryZ, wallMaterial);
@@ -276,12 +275,11 @@ function initWalls() {
                     wall.position.z = z1;
                     if (labyWalls[i][j][5]) {
                         labyWalls[i][j][5] = false;
-                        var door = new THREE.Mesh(doorGeometryZ, doorMaterial);
-                        door.position.x = x1 - tileWidth / 2;
-                        door.position.z = z1;
-                        door.position.y = (wallHeight / 2) - 18;
-                        scene.add(door);
-                        doorEnd.push(door);
+                        doorEnd = new THREE.Mesh(doorGeometryZ, doorMaterial);
+                        doorEnd.position.x = x1 - tileWidth / 2;
+                        doorEnd.position.z = z1;
+                        doorEnd.position.y = (wallHeight / 2) - 18;
+                        scene.add(doorEnd);
                     }
                 }
                 scene.add(wall);
@@ -357,12 +355,9 @@ function initWalls() {
             raycaster.ray.origin.copy(controls.getObject().position);
             raycaster.ray.origin.y -= 10;
 
+            // check if jumping is possible (player needs to stand on ground)
             var intersections = raycaster.intersectObjects(objects);
-            var intersectTorches = raycaster.intersectObjects(torches);
-            var intersectDoor = raycaster.intersectObjects(doorEnd);
-            var isOnObject = intersections.length > 0;
-
-            if (isOnObject === true) {
+            if (intersections.length > 0) {
               velocity.y = Math.max(0, velocity.y);
               canJump = true;
             }
@@ -391,8 +386,9 @@ function initWalls() {
                 velocity.z = 0;
             }
 
-            for (var i = 0; i < intersectTorches.length; i++) {
-                let torch = intersectTorches[i].object;
+            // Check torch collision
+            for (let collision of raycaster.intersectObjects(torches)) {
+                let torch = collision.object;
                 torches = torches.filter(t => t.uuid !== torch.uuid);
                 scene.remove(torch);
                 if (!playerHasTorch) {
@@ -404,16 +400,18 @@ function initWalls() {
                 }
             }
 
-            if (intersectDoor.length >= 1) {
-                let door = intersectDoor[0].object;
-                doorEnd = doorEnd.filter(d => d.uuid !== door.uuid);
-                scene.remove(door);
-                connection.send(JSON.stringify({
-                    type: 'finished',
-                    player: player,
-                    seconds: seconds
-                }));
+            // Check door collision
+            if (doorEnd) {
+                if (raycaster.intersectObject(doorEnd).length > 0) {
+                    scene.remove(doorEnd);
+                    connection.send(JSON.stringify({
+                        type: 'finished',
+                        player: player,
+                        seconds: seconds
+                    }));
+                }
             }
+
 
             if (light.distance > 10 && playerHasTorch) {
                 camera.remove(light);
