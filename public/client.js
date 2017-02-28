@@ -405,13 +405,14 @@ function initWalls() {
             }
 
             if (intersectDoor.length >= 1) {
-                scene.remove(intersectDoor[0].object);
+                let door = intersectDoor[0].object;
+                doorEnd = doorEnd.filter(d => d.uuid !== door.uuid);
+                scene.remove(door);
                 connection.send(JSON.stringify({
                     type: 'finished',
                     player: player,
                     seconds: seconds
                 }));
-
             }
 
             if (light.distance > 10 && playerHasTorch) {
