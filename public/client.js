@@ -84,6 +84,7 @@ function initWalls() {
     var sprint = false;
     var prevTime = performance.now();
     var velocity = new THREE.Vector3();
+    var yAxis = new THREE.Vector3(0, 1, 0);
 
     if (havePointerLock) {
         var element = document.body;
@@ -371,10 +372,10 @@ function initWalls() {
             raycaster.set(camera.getWorldPosition(), directionToNextPos);
 
             // Debugging arrow welche die Richtung anzeigt
-            // if (arrow)
-            // scene.remove ( arrow );
-            // arrow = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 10, 0xffffff );
-            // scene.add( arrow );
+            if (arrow)
+            scene.remove ( arrow );
+            arrow = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 10, 0xffffff );
+            scene.add( arrow );
 
             // berechne die sich schneidenen Objecte mit dem picking ray
             var intersects = raycaster.intersectObjects(objects);
@@ -386,24 +387,11 @@ function initWalls() {
                 velocity.z = 0;
             }
 
-            // Check torch collision
-            for (let collision of raycaster.intersectObjects(torches)) {
-                let torch = collision.object;
-                torches = torches.filter(t => t.uuid !== torch.uuid);
-                scene.remove(torch);
-                if (!playerHasTorch) {
-                    camera.remove(light);
-                    playerHasTorch = true;
-                    light.color.setHex(0xE25822);
-                    light.distance = 150;
-                    camera.add(light);
-                }
-            }
-
             // Check door collision
             if (doorEnd) {
                 if (raycaster.intersectObject(doorEnd).length > 0) {
                     scene.remove(doorEnd);
+                    doorEnd = undefined;
                     connection.send(JSON.stringify({
                         type: 'finished',
                         player: player,
@@ -412,6 +400,26 @@ function initWalls() {
                 }
             }
 
+            // Check torch collision
+            raycaster.far = 100;
+            for (let i = 0; i < 100; ++i) {
+              raycaster.ray.origin.y = 0;
+              raycaster.ray.direction = directionToNextPos.clone().applyAxisAngle(yAxis, Math.PI / 4 - Math.PI / 2 * i / 100);
+              raycaster.ray.direction.y = 0;
+              for (let collision of raycaster.intersectObjects(torches)) {
+                  let torch = collision.object;
+                  torches = torches.filter(t => t.uuid !== torch.uuid);
+                  scene.remove(torch);
+                  if (!playerHasTorch) {
+                      camera.remove(light);
+                      playerHasTorch = true;
+                      light.color.setHex(0xE25822);
+                      light.distance = 150;
+                      camera.add(light);
+                  }
+              }
+            }
+            raycaster.far = 10;
 
             if (light.distance > 10 && playerHasTorch) {
                 camera.remove(light);
