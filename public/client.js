@@ -296,6 +296,7 @@ function initWalls() {
             torch.position.y = 2;
             scene.add(torch);
             torches.push(torch);
+            console.log("Created torch", torch);
         }
 
         for (var i = 0; i < tilesPerRow; i++) {
@@ -391,7 +392,9 @@ function initWalls() {
             }
 
             for (var i = 0; i < intersectTorches.length; i++) {
-                scene.remove(intersectTorches[i].object);
+                let torch = intersectTorches[i].object;
+                torches = torches.filter(t => t.uuid !== torch.uuid);
+                scene.remove(torch);
                 if (!playerHasTorch) {
                     camera.remove(light);
                     playerHasTorch = true;
