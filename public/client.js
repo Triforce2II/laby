@@ -8,7 +8,6 @@ var playerOnMaps = [];
 var labywalls;
 var connection;
 var scene = new THREE.Scene();
-
 var seconds = 0;
 var timer = setInterval(function() {
     ++seconds
@@ -36,7 +35,6 @@ function init() {
                 initWalls();
             } else if (json.type === 'position') {
                 playerLocations = json.data;
-
                 //console.log(message);
                 var i = Object.keys(playerLocations).length;
                 while (players < i) {
@@ -53,9 +51,10 @@ function init() {
                 }
             } else if (json.type === 'finished') {
                 alert("Player: " + json.player + " has found the exit in " + json.seconds + " seconds!");
-            } else {
-                //console.log(json.data);
             }
+            // else {
+            //     console.log(json.data);
+            // }
         } catch (e) {
             console.log('Error Message: ', e);
             return;
@@ -76,6 +75,15 @@ function initWalls() {
     var blocker = document.getElementById('blocker');
     var instructions = document.getElementById('instructions');
     var havePointerLock = 'pointerLockElement' in document || 'mozPointerLockElement' in document || 'webkitPointerLockElement' in document;
+    var controlsEnabled = false;
+    var moveForward = false;
+    var moveBackward = false;
+    var moveLeft = false;
+    var moveRight = false;
+    var canJump = false;
+    var sprint = false;
+    var prevTime = performance.now();
+    var velocity = new THREE.Vector3();
 
     if (havePointerLock) {
         var element = document.body;
@@ -109,7 +117,6 @@ function initWalls() {
 
         instructions.addEventListener('click', function(event) {
             instructions.style.display = 'none';
-            // Ask the browser to lock the pointer
             element.requestPointerLock = element.requestPointerLock || element.mozRequestPointerLock || element.webkitRequestPointerLock;
             element.requestPointerLock();
         }, false);
@@ -124,16 +131,6 @@ function initWalls() {
         return Math.floor(Math.random() * (max - min)) + min;
     }
 
-    var controlsEnabled = false;
-    var moveForward = false;
-    var moveBackward = false;
-    var moveLeft = false;
-    var moveRight = false;
-    var canJump = false;
-    var sprint = false;
-    var prevTime = performance.now();
-    var velocity = new THREE.Vector3();
-
     function initMove() {
         var floorHeight = 1;
         var tileWidth = 40;
@@ -144,34 +141,27 @@ function initWalls() {
         var loader = new THREE.TextureLoader();
 
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
-        //scene.fog = new THREE.Fog(0x000000, 0, 100);
-
         light = new THREE.PointLight(0x222211, 2, 75, 2);
         camera.add(light);
-
         controls = new THREE.PointerLockControls(camera);
         scene.add(controls.getObject());
 
         var onKeyDown = function(event) {
             switch (event.keyCode) {
-                case 38: // up
                 case 87: // w
                     moveForward = true;
                     break;
-                case 37: // left
                 case 65: // a
                     moveLeft = true;
                     break;
-                case 40: // down
                 case 83: // s
                     moveBackward = true;
                     break;
-                case 39: // right
                 case 68: // d
                     moveRight = true;
                     break;
                 case 32: // space
-                    if (canJump === true) velocity.y += 100;
+                    if (canJump === true) velocity.y += 1000;
                     canJump = false;
                     break;
                 case 16:
@@ -182,19 +172,15 @@ function initWalls() {
 
         var onKeyUp = function(event) {
             switch (event.keyCode) {
-                case 38: // up
                 case 87: // w
                     moveForward = false;
                     break;
-                case 37: // left
                 case 65: // a
                     moveLeft = false;
                     break;
-                case 40: // down
                 case 83: // s
                     moveBackward = false;
                     break;
-                case 39: // right
                 case 68: // d
                     moveRight = false;
                     break;
@@ -207,29 +193,17 @@ function initWalls() {
         document.addEventListener('keydown', onKeyDown, false);
         document.addEventListener('keyup', onKeyUp, false);
 
-        this.rays = [
-            new THREE.Vector3(0, 0, 1),
-            new THREE.Vector3(1, 0, 1),
-            new THREE.Vector3(1, 0, 0),
-            new THREE.Vector3(1, 0, -1),
-            new THREE.Vector3(0, 0, -1),
-            new THREE.Vector3(-1, 0, -1),
-            new THREE.Vector3(-1, 0, 0),
-            new THREE.Vector3(-1, 0, 1),
-            new THREE.Vector3(0, -1, 0)
-        ];
-
         raycaster = new THREE.Raycaster(new THREE.Vector3(), new THREE.Vector3(0, -1, 0), 0, 10);
-        geometry = new THREE.PlaneGeometry(2000, 2000, 100, 100);
+        geometry = new THREE.PlaneGeometry(tileWidth*tilesPerRow, tileWidth*tilesPerRow, 100, 100);
         geometry.rotateX(-Math.PI / 2);
 
         var floorTexture = loader.load('textures/floor.jpg');
         floorTexture.wrapS = THREE.RepeatWrapping;
         floorTexture.wrapT = THREE.RepeatWrapping;
-        floorTexture.repeat.set(100, 100);
+        floorTexture.repeat.set(tilesPerRow, tilesPerRow);
         floorTexture.anisotropy = 16;
 
-        material = new THREE.MeshPhongMaterial({
+        material = new THREE.MeshBasicMaterial({//PhongMaterial({
             color: 0xffffff,
             map: floorTexture,
             specular: 0x111111,
@@ -237,57 +211,37 @@ function initWalls() {
         });
 
         mesh = new THREE.Mesh(geometry, material);
+        mesh.position.x = (tileWidth*tilesPerRow/2) - (tileWidth/2) ;
+        mesh.position.z = (tileWidth*tilesPerRow/2) - (tileWidth/2);
         scene.add(mesh);
 
-        // objects
-
-        geometry = new THREE.BoxGeometry(20, 20, 20);
-
-        for (var i = 0, l = geometry.faces.length; i < l; i++) {
-            var face = geometry.faces[i];
-            face.vertexColors[0] = new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
-            face.vertexColors[1] = new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
-            face.vertexColors[2] = new THREE.Color().setHSL(Math.random() * 0.3 + 0.5, 0.75, Math.random() * 0.25 + 0.75);
-        }
-
-        // a hash table to remember which walls are already there because
-        // `labyWalls' will mention walls twice - e.g. as the "north" wall
-        // of one cell and as the "south" wall of its northern neighbor
         var wallErected = {};
-        // the geometries of the wall pieces, depending on their orientation
         var wallGeometryX = new THREE.BoxGeometry(tileWidth, wallHeight, wallWidth);
         var wallGeometryZ = new THREE.BoxGeometry(wallWidth, wallHeight, tileWidth);
-        var torchGeometry = new THREE.BoxGeometry(1, 5, 1);
-        var doorGeometryX = new THREE.BoxGeometry(tileWidth / 4, (wallHeight / 2) - 6, wallWidth + 2);
-        var doorGeometryZ = new THREE.BoxGeometry(wallWidth + 2, (wallHeight / 2) - 6, tileWidth / 4);
-
         var wallTexture = loader.load('textures/wall.jpg');
-        wallTexture.wrapS = THREE.RepeatWrapping;
-        wallTexture.wrapT = THREE.RepeatWrapping;
-        wallTexture.repeat.set(1, 1);
         wallTexture.anisotropy = 16;
-
-        var wallMaterial = new THREE.MeshPhongMaterial({
+        var wallMaterial = new THREE.MeshBasicMaterial({//PhongMaterial({
             color: 0xffffff,
             map: wallTexture,
             specular: 0x111111,
             shininess: 1
         });
 
+        var torchGeometry = new THREE.BoxGeometry(1, 5, 1);
         var torchTexture = loader.load('textures/torch.jpg');
         torchTexture.anisotropy = 16;
-
-        var torchMaterial = new THREE.MeshPhongMaterial({
+        var torchMaterial = new THREE.MeshBasicMaterial({//PhongMaterial({
             color: 0xffffff,
             map: torchTexture,
             specular: 0x111111,
             shininess: 1
         });
 
+        var doorGeometryX = new THREE.BoxGeometry(tileWidth / 4, (wallHeight / 2) - 6, wallWidth + 2);
+        var doorGeometryZ = new THREE.BoxGeometry(wallWidth + 2, (wallHeight / 2) - 6, tileWidth / 4);
         var doorTexture = loader.load('textures/door.jpg');
         doorTexture.anisotropy = 16;
-
-        var doorMaterial = new THREE.MeshPhongMaterial({
+        var doorMaterial = new THREE.MeshBasicMaterial({//PhongMaterial({
             color: 0xffffff,
             map: doorTexture,
             specular: 0x111111,
@@ -344,27 +298,24 @@ function initWalls() {
             torches.push(torch);
         }
 
-        // loop through all cells of the labyrinth and translate the
-        // information into gray wall pieces; also add all missing wooden
-        // tiles (i.e. all except the first one which is `floor')
         for (var i = 0; i < tilesPerRow; i++) {
             var x = i * tileWidth;
             for (var j = 0; j < tilesPerRow; j++) {
                 var z = j * tileWidth;
                 if (labyWalls[i][j][0])
-                    //north
+                    //Norden
                     maybeErectWall(x, z, x + tileWidth, z, i, j);
                 if (labyWalls[i][j][1])
-                    //south
+                    //Süden
                     maybeErectWall(x, z + tileWidth, x + tileWidth, z + tileWidth, i, j);
                 if (labyWalls[i][j][2])
-                    //west
+                    //Westen
                     maybeErectWall(x, z, x, z + tileWidth, i, j);
                 if (labyWalls[i][j][3])
-                    //east
+                    //Osten
                     maybeErectWall(x + tileWidth, z, x + tileWidth, z + tileWidth, i, j);
                 if (labyWalls[i][j][4]) {
-                    //torch
+                    //Torch
                     placeTorch(x, z);
                 }
             }
@@ -423,17 +374,17 @@ function initWalls() {
             directionToNextPos.subVectors(nextPosition.position, camera.getWorldPosition()).normalize();
             raycaster.set(camera.getWorldPosition(), directionToNextPos);
 
-            // Debugging arrow which shows direction
+            // Debugging arrow welche die Richtung anzeigt
             // if (arrow)
             // scene.remove ( arrow );
             // arrow = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 10, 0xffffff );
             // scene.add( arrow );
 
-            // calculate objects intersecting the picking ray
+            // berechne die sich schneidenen Objecte mit dem picking ray
             var intersects = raycaster.intersectObjects(objects);
 
             for (var i = 0; i < intersects.length; i++) {
-                // Debug color switching to see collision
+                // Debug farbe um die sich schneidenen Objekte zu sehen
                 // intersects[ i ].object.material.color.set(Math.random() * 0xffffff);
                 velocity.x = 0;
                 velocity.z = 0;
@@ -450,9 +401,6 @@ function initWalls() {
                 }
             }
 
-            /*if (intersectDoor.lenth > 0) {
-                scene.remove(intersectDoor[0].object);
-            }*/
             if (intersectDoor.length >= 1) {
                 scene.remove(intersectDoor[0].object);
                 connection.send(JSON.stringify({
@@ -485,11 +433,7 @@ function initWalls() {
                 canJump = true;
             }
 
-            var x = controls.getObject().position.x.toFixed(1);
-            var y = controls.getObject().position.y.toFixed(1);
-            var z = controls.getObject().position.z.toFixed(1);
             var count = 0;
-
             for (var i = 0; i < Object.keys(playerOnMaps).length; ++i) {
                 playerOnMaps[i].position.x = playerLocations[i].x;
                 playerOnMaps[i].position.y = playerLocations[i].y;
@@ -497,6 +441,9 @@ function initWalls() {
                 ++count;
             }
 
+            var x = controls.getObject().position.x.toFixed(1);
+            var y = controls.getObject().position.y.toFixed(1);
+            var z = controls.getObject().position.z.toFixed(1);
             if (x != playerLocations[player].x ||
                 y != playerLocations[player].y ||
                 z != playerLocations[player].z) {
