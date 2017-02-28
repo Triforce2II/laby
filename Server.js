@@ -5,7 +5,7 @@ var WebSocketServer = require("ws").Server;
 var myHttp = require("http");
 var express = require("express");
 var app = express();
-var server = myHttp.createServer(app).listen(conf.port);
+var server = myHttp.createServer(app).listen(process.env.PORT || conf.port);
 var playerLocations = [];
 var playerCounter = 0;
 var tileWidth = 40;
@@ -145,3 +145,5 @@ function createLabyrinth(width, height) {
     }
     return walls;
 }
+
+console.log("Started server on port "  +  (process.env.PORT || conf.port));
