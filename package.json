@@ -3,7 +3,7 @@
   "description": "Kai's Labyrinth Spiel",
   "author": "Kai Hartel",
   "scripts": {
-    "start" : "node server.js"
+    "start" : "node Server.js"
   },
   "dependencies": {
     "express": "^4.14.1",
