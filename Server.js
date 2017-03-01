@@ -6,8 +6,7 @@ var myHttp = require("http");
 var express = require("express");
 var app = express();
 var server = myHttp.createServer(app).listen(process.env.PORT || conf.port);
-var playerLocations = [];
-var playerCounter = 0;
+var playerLocations = {};
 var tileWidth = 40;
 var floorWidth = 600;
 var tilesPerRow = floorWidth / tileWidth;
@@ -24,26 +23,36 @@ var wss = new WebSocketServer({
 });
 
 wss.on('connection', function(ws) {
+    const playerId = uuid.v4();
+
     ws.on('message', function(message) {
         var json = JSON.parse(message);
-        if (json.type == 'position') {
-            playerLocations[json.player] = json.data;
-        } else if (json.type == 'finished') {
+        if (json.type === 'position') {
+            playerLocations[playerId] = json.data;
+        } else if (json.type === 'finished') {
             wss.broadcast(message);
         }
         //console.log('received: %s', message);
     });
-    var id = playerCounter;
-    ++playerCounter;
-    playerLocations[id] = {
+
+    ws.onclose = (event) => {
+      delete playerLocations[playerId];
+
+      wss.broadcast(JSON.stringify({
+        type: 'playerDeleted',
+        playerId
+      }))
+    }
+
+    playerLocations[playerId] = {
         x: 0,
         y: 10,
         z: 0
     };
+
     ws.send(JSON.stringify({
         type: 'walls',
-        player: id,
-        location: playerLocations,
+        playerId,
         data: walls
     }));
 });

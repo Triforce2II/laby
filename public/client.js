@@ -1,10 +1,8 @@
 document.addEventListener("DOMContentLoaded", init());
 
-var player;
+var playerId;
 var playerHasTorch = false;
-var players = 0;
-var playerLocations;
-var playerOnMaps = [];
+var playerOnMaps = new Map();
 var labywalls;
 var connection;
 var scene = new THREE.Scene();
@@ -30,24 +28,41 @@ function init() {
             var json = JSON.parse(message.data);
             if (json.type === 'walls') {
                 labyWalls = json.data;
-                player = json.player;
-                playerLocations = json.location;
+                playerId = json.playerId;
                 initWalls();
+            } else if (json.type === 'playerDeleted') {
+                //remove player from scene
+                console.log('received player delete msg', json.playerId);
+                if (playerOnMaps.has(json.playerId)) {
+                  console.log('delete player from scene');
+                  scene.remove(playerOnMaps.get(json.playerId));
+                  playerOnMaps.delete(json.playerId);
+                }
             } else if (json.type === 'position') {
-                playerLocations = json.data;
-                //console.log(message);
-                var i = Object.keys(playerLocations).length;
-                while (players < i) {
-                    ++players;
-                    var geometry = new THREE.SphereGeometry(5, 32, 32);
-                    var material = new THREE.MeshPhongMaterial({
-                        color: 0xffff00,
-                        specular: 0x111111,
-                        shininess: 1
-                    });
-                    var sphere = new THREE.Mesh(geometry, material);
-                    playerOnMaps.push(sphere);
-                    scene.add(sphere);
+                let playerLocations = json.data;
+
+                //add new players to scene
+                for (const key of Object.keys(playerLocations)) {
+                  let location = playerLocations[key];
+                  //only display others players
+                  if (playerId !== key) {
+                    if (!playerOnMaps.has(key)) {
+                      let geometry = new THREE.SphereGeometry(5, 32, 32);
+                      let material = new THREE.MeshPhongMaterial({
+                          color: 0xffff00,
+                          specular: 0x111111,
+                          shininess: 1
+                      });
+                      let sphere = new THREE.Mesh(geometry, material);
+                      playerOnMaps.set(key, sphere);
+                      scene.add(sphere);
+                    }
+
+                    let sphere = playerOnMaps.get(key);
+                    sphere.position.x = location.x;
+                    sphere.position.y = location.y;
+                    sphere.position.z = location.z;
+                  }
                 }
             } else if (json.type === 'finished') {
                 alert("Player: " + json.player + " has found the exit in " + json.seconds + " seconds!");
@@ -422,30 +437,18 @@ function initWalls() {
             controls.getObject().translateY(velocity.y * delta);
             controls.getObject().translateZ(velocity.z * delta);
 
-            var count = 0;
-            for (var i = 0; i < Object.keys(playerOnMaps).length; ++i) {
-                playerOnMaps[i].position.x = playerLocations[i].x;
-                playerOnMaps[i].position.y = playerLocations[i].y;
-                playerOnMaps[i].position.z = playerLocations[i].z;
-                ++count;
+            if (velocity.x > 0 || velocity.y > 0 || velocity.z > 0) {
+              connection.send(JSON.stringify({
+                  type: 'position',
+                  playerId,
+                  data: {
+                      x: controls.getObject().position.x.toFixed(1),
+                      y: controls.getObject().position.y.toFixed(1),
+                      z: controls.getObject().position.z.toFixed(1)
+                  }
+              }));
             }
 
-            var x = controls.getObject().position.x.toFixed(1);
-            var y = controls.getObject().position.y.toFixed(1);
-            var z = controls.getObject().position.z.toFixed(1);
-            if (x != playerLocations[player].x ||
-                y != playerLocations[player].y ||
-                z != playerLocations[player].z) {
-                  connection.send(JSON.stringify({
-                      type: 'position',
-                      player: player,
-                      data: {
-                          x: x,
-                          y: y,
-                          z: z
-                      }
-                  }));
-            }
             prevTime = time;
         }
         renderer.render(scene, camera);
