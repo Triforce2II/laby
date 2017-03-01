@@ -149,21 +149,17 @@ function initWalls() {
 
         var onKeyDown = function(event) {
             switch (event.keyCode) {
-                case 87: // w
+                case 87:
                     moveForward = true;
                     break;
-                case 65: // a
+                case 65:
                     moveLeft = true;
                     break;
-                case 83: // s
+                case 83:
                     moveBackward = true;
                     break;
-                case 68: // d
+                case 68:
                     moveRight = true;
-                    break;
-                case 32: // space
-                    if (canJump === true) velocity.y += 1000;
-                    canJump = false;
                     break;
                 case 16:
                     sprint = true;
@@ -173,16 +169,16 @@ function initWalls() {
 
         var onKeyUp = function(event) {
             switch (event.keyCode) {
-                case 87: // w
+                case 87:
                     moveForward = false;
                     break;
-                case 65: // a
+                case 65:
                     moveLeft = false;
                     break;
-                case 83: // s
+                case 83:
                     moveBackward = false;
                     break;
-                case 68: // d
+                case 68:
                     moveRight = false;
                     break;
                 case 16:
@@ -204,7 +200,7 @@ function initWalls() {
         floorTexture.repeat.set(tilesPerRow, tilesPerRow);
         floorTexture.anisotropy = 16;
 
-        material = new THREE.MeshBasicMaterial({//PhongMaterial({
+        material = new THREE.MeshPhongMaterial({
             color: 0xffffff,
             map: floorTexture,
             specular: 0x111111,
@@ -221,7 +217,7 @@ function initWalls() {
         var wallGeometryZ = new THREE.BoxGeometry(wallWidth, wallHeight, tileWidth);
         var wallTexture = loader.load('textures/wall.jpg');
         wallTexture.anisotropy = 16;
-        var wallMaterial = new THREE.MeshBasicMaterial({//PhongMaterial({
+        var wallMaterial = new THREE.MeshPhongMaterial({
             color: 0xffffff,
             map: wallTexture,
             specular: 0x111111,
@@ -231,7 +227,7 @@ function initWalls() {
         var torchGeometry = new THREE.BoxGeometry(1, 5, 1);
         var torchTexture = loader.load('textures/torch.jpg');
         torchTexture.anisotropy = 16;
-        var torchMaterial = new THREE.MeshBasicMaterial({//PhongMaterial({
+        var torchMaterial = new THREE.MeshPhongMaterial({
             color: 0xffffff,
             map: torchTexture,
             specular: 0x111111,
@@ -242,7 +238,7 @@ function initWalls() {
         var doorGeometryZ = new THREE.BoxGeometry(wallWidth + 2, (wallHeight / 2) - 6, tileWidth / 4);
         var doorTexture = loader.load('textures/door.jpg');
         doorTexture.anisotropy = 16;
-        var doorMaterial = new THREE.MeshBasicMaterial({//PhongMaterial({
+        var doorMaterial = new THREE.MeshPhongMaterial({
             color: 0xffffff,
             map: doorTexture,
             specular: 0x111111,
@@ -345,23 +341,12 @@ function initWalls() {
 
             velocity.x -= velocity.x * 10.0 * delta;
             velocity.z -= velocity.z * 10.0 * delta;
-            velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
 
             if (sprint) multi = 2;
             if (moveForward) velocity.z -= 400.0 * delta * multi;
             if (moveBackward) velocity.z += 400.0 * delta * multi;
             if (moveLeft) velocity.x -= 400.0 * delta * multi;
             if (moveRight) velocity.x += 400.0 * delta * multi;
-
-            raycaster.ray.origin.copy(controls.getObject().position);
-            raycaster.ray.origin.y -= 10;
-
-            // check if jumping is possible (player needs to stand on ground)
-            var intersections = raycaster.intersectObjects(objects);
-            if (intersections.length > 0) {
-              velocity.y = Math.max(0, velocity.y);
-              canJump = true;
-            }
 
             var nextPosition = controls.getObject().clone();
             nextPosition.translateX(velocity.x * delta);
@@ -372,10 +357,10 @@ function initWalls() {
             raycaster.set(camera.getWorldPosition(), directionToNextPos);
 
             // Debugging arrow welche die Richtung anzeigt
-            if (arrow)
-            scene.remove ( arrow );
-            arrow = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 10, 0xffffff );
-            scene.add( arrow );
+            // if ( arrow )
+            // scene.remove ( arrow );
+            // arrow = new THREE.ArrowHelper(raycaster.ray.direction, raycaster.ray.origin, 10, 0xffffff );
+            // scene.add( arrow );
 
             // berechne die sich schneidenen Objecte mit dem picking ray
             var intersects = raycaster.intersectObjects(objects);
@@ -401,7 +386,7 @@ function initWalls() {
             }
 
             // Check torch collision
-            raycaster.far = 100;
+            raycaster.far = 10;
             for (let i = 0; i < 100; ++i) {
               raycaster.ray.origin.y = 0;
               raycaster.ray.direction = directionToNextPos.clone().applyAxisAngle(yAxis, Math.PI / 4 - Math.PI / 2 * i / 100);
@@ -436,12 +421,6 @@ function initWalls() {
             controls.getObject().translateX(velocity.x * delta);
             controls.getObject().translateY(velocity.y * delta);
             controls.getObject().translateZ(velocity.z * delta);
-
-            if (controls.getObject().position.y < 10) {
-                velocity.y = 0;
-                controls.getObject().position.y = 10;
-                canJump = true;
-            }
 
             var count = 0;
             for (var i = 0; i < Object.keys(playerOnMaps).length; ++i) {
