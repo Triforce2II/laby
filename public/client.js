@@ -65,7 +65,7 @@ function init() {
                   }
                 }
             } else if (json.type === 'finished') {
-                alert("Player: " + json.player + " has found the exit in " + json.seconds + " seconds!");
+                alert("Player: " + json.playerId + " has found the exit in " + json.seconds + " seconds!");
             }
             // else {
             //     console.log(json.data);
@@ -394,7 +394,7 @@ function initWalls() {
                     doorEnd = undefined;
                     connection.send(JSON.stringify({
                         type: 'finished',
-                        player: player,
+                        playerId: playerId,
                         seconds: seconds
                     }));
                 }
