@@ -437,7 +437,7 @@ function initWalls() {
             controls.getObject().translateY(velocity.y * delta);
             controls.getObject().translateZ(velocity.z * delta);
 
-            if (velocity.x > 0 || velocity.y > 0 || velocity.z > 0) {
+            if (velocity.x !== 0 || velocity.y !== 0 || velocity.z !== 0) {
               connection.send(JSON.stringify({
                   type: 'position',
                   playerId,
