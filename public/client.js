@@ -1,4 +1,5 @@
-document.addEventListener("DOMContentLoaded", initWebsocket());
+/*global document*/
+document.addEventListener('DOMContentLoaded', initWebsocket());
 
 var playerId;
 var playerHasTorch = false;

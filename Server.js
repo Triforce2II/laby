@@ -1,24 +1,23 @@
-var conf = require("./config.json");
-var uuid = require("node-uuid");
-var WebSocket = require("ws");
-var WebSocketServer = require("ws").Server;
-var myHttp = require("http");
-var express = require("express");
-var app = express();
-var server = myHttp.createServer(app).listen(process.env.PORT || conf.port);
-var playerLocations = {};
-var tileWidth = 40;
-var floorWidth = 600;
-var tilesPerRow = floorWidth / tileWidth;
-var walls = createLabyrinth(tilesPerRow, tilesPerRow);
+const path = require('path');
+const conf = require('./config.json');
+const uuid = require('node-uuid');
+const WebSocket = require('ws');
+const myHttp = require('http');
+const express = require('express');
 
-app.use(express.static(__dirname + "/public"));
+const WebSocketServer = WebSocket.Server;
+const app = express();
+const server = myHttp.createServer(app).listen(process.env.PORT || conf.port);
+const playerLocations = {};
+const tileWidth = 40;
+const floorWidth = 600;
+const tilesPerRow = floorWidth / tileWidth;
 
-app.get("/", function(req, res) {
-    res.sendfile(__dirname + "/public/index.html");
-});
+let walls = createLabyrinth(tilesPerRow, tilesPerRow);
 
-var wss = new WebSocketServer({
+app.use(express.static(path.join(__dirname, 'public')));
+
+const wss = new WebSocketServer({
     server
 });
 
@@ -155,12 +154,12 @@ function createLabyrinth(width, height) {
         maybeAddCandidate(0, -1, 0, 1);
         maybeAddCandidate(0, 1, 1, 0);
         if (candidates.length > 0) {
-            var candidate = candidates[randomInt(0, candidates.length)];
+            const candidate = candidates[randomInt(0, candidates.length)];
             tearDownWall(currentCell[0], currentCell[1], candidate[2]);
             tearDownWall(candidate[0], candidate[1], candidate[3]);
             cellStack.push(currentCell);
             currentCell = [candidate[0], candidate[1]];
-            visited++;
+            visited += 1;
         } else {
             currentCell = cellStack.pop();
         }
@@ -168,4 +167,4 @@ function createLabyrinth(width, height) {
     return walls;
 }
 
-console.log("Started server on port " + (process.env.PORT || conf.port));
+console.log(`Started server on port ${(process.env.PORT || conf.port)}`);

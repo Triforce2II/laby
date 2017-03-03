@@ -3,11 +3,16 @@
   "description": "Kai's Labyrinth Spiel",
   "author": "Kai Hartel",
   "scripts": {
-    "start" : "node Server.js"
+    "start": "node Server.js"
   },
   "dependencies": {
     "express": "^4.14.1",
     "node-uuid": "^1.4.7",
     "ws": "^2.0.3"
+  },
+  "devDependencies": {
+    "eslint": "^3.16.1",
+    "eslint-config-airbnb-base": "^11.1.0",
+    "eslint-plugin-import": "^2.2.0"
   }
 }

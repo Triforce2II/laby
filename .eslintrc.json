@@ -1,0 +1,14 @@
+{
+    "extends": "airbnb-base",
+    "plugins": [
+        "import"
+    ],
+    "rules": {
+      "linebreak-style": "off",
+      "indent": "off",
+      "comma-dangle": "off",
+      "no-use-before-define": "off",
+      "spaced-comment": "off",
+      "no-console": "off"
+    }
+}
