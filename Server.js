@@ -30,18 +30,29 @@ wss.on('connection', function(ws) {
         if (json.type === 'position') {
             playerLocations[playerId] = json.data;
         } else if (json.type === 'finished') {
-            wss.broadcast(message);
+            walls = createLabyrinth(tilesPerRow, tilesPerRow);
+            for (let i = 0; i < playerLocations.length; ++i) {
+                playerLocations[i].x = 0;
+                playerLocations[i].z = 0;
+            }
+            wss.broadcast(JSON.stringify({
+                type: json.type,
+                playerId: json.playerId,
+                playerLocations: playerLocations,
+                seconds: json.seconds,
+                walls: walls
+            }));
         }
         //console.log('received: %s', message);
     });
 
     ws.onclose = (event) => {
-      delete playerLocations[playerId];
+        delete playerLocations[playerId];
 
-      wss.broadcast(JSON.stringify({
-        type: 'playerDeleted',
-        playerId
-      }))
+        wss.broadcast(JSON.stringify({
+            type: 'playerDeleted',
+            playerId
+        }))
     }
 
     playerLocations[playerId] = {
@@ -83,9 +94,11 @@ function erectWalls(width, height) {
     for (var x = 0; x < width; x++) {
         walls[x] = [];
         for (var y = 0; y < height; y++) {
-            walls[x][y] = [true, true, true, true, false, false];
-            if (Math.random() > 0.8) {
-                walls[x][y] = [true, true, true, true, true, false];
+            walls[x][y] = [true, true, true, true, false, false, false];
+            if (Math.random() > 0.9) {
+                walls[x][y] = [true, true, true, true, true, false, false];
+            } else if (Math.random() > 0.95) {
+                walls[x][y] = [true, true, true, true, false, false, true];
             }
         }
     }
@@ -155,4 +168,4 @@ function createLabyrinth(width, height) {
     return walls;
 }
 
-console.log("Started server on port "  +  (process.env.PORT || conf.port));
+console.log("Started server on port " + (process.env.PORT || conf.port));

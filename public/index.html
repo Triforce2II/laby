@@ -1,63 +1,85 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Labyrinth</title>
     <meta charset="utf-8">
     <style>
-			html, body {
-				width: 100%;
-				height: 100%;
-			}
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
 
-			body {
-				margin: 0;
-				overflow: hidden;
-			}
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
 
-			#blocker {
-				position: absolute;
-				width: 100%;
-				height: 100%;
-				background-color: rgba(0,0,0,0.6);
-			}
+        #blocker {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
 
-			#instructions {
-				width: 100%;
-				height: 100%;
+        #instructions {
+            width: 100%;
+            height: 100%;
+            display: -webkit-box;
+            display: -moz-box;
+            display: box;
+            -webkit-box-orient: horizontal;
+            -moz-box-orient: horizontal;
+            box-orient: horizontal;
+            -webkit-box-pack: center;
+            -moz-box-pack: center;
+            box-pack: center;
+            -webkit-box-align: center;
+            -moz-box-align: center;
+            box-align: center;
+            color: #ffff00;
+            text-align: center;
+            cursor: pointer;
+        }
 
-				display: -webkit-box;
-				display: -moz-box;
-				display: box;
-
-				-webkit-box-orient: horizontal;
-				-moz-box-orient: horizontal;
-				box-orient: horizontal;
-
-				-webkit-box-pack: center;
-				-moz-box-pack: center;
-				box-pack: center;
-
-				-webkit-box-align: center;
-				-moz-box-align: center;
-				box-align: center;
-
-				color: #ffff00;
-				text-align: center;
-
-				cursor: pointer;
-			}
-		</style>
+        #crumbsLeft {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            font-size: 40px;
+            background-color: rgba(0, 0, 0, 0);
+            display: -webkit-box;
+            display: -moz-box;
+            display: box;
+            -webkit-box-orient: horizontal;
+            -moz-box-orient: horizontal;
+            box-orient: horizontal;
+            -webkit-box-pack: left;
+            -moz-box-pack: left;
+            box-pack: left;
+            -webkit-box-align: bottom;
+            -moz-box-align: bottom;
+            box-align: bottom;
+            color: #ffff00;
+            text-align: center;
+        }
+    </style>
 </head>
+
 <body>
+    <div id="crumbsLeft">
+        crumbs left:
+    </div>
     <div id="blocker">
-      <div id="instructions">
-        <span style="font-size:40px">Click to play</span>
-        <br />
-        (W, A, S, D = Move, MOUSE = Look around)
-      </div>
+        <div id="instructions">
+            <span style="font-size:40px">Click to play</span>
+            <br /> (W, A, S, D = Move, MOUSE = Look around)
+        </div>
     </div>
     <script src="three.min.js"></script>
     <script src="PointerLockControls.js"></script>
     <script src="client.js"></script>
 </body>
+
 </html>
