@@ -13,7 +13,6 @@ var sprint = false;
 var throwCrumbs = false;
 var wasInitOnce;
 var doorEnd;
-var renderer;
 var controls;
 var walls;
 var wallObjects = [];
@@ -23,6 +22,7 @@ var crumbBoxes = [];
 var crumbs = [];
 var controlsEnabled = false;
 var prevTime = performance.now();
+const renderer = new THREE.WebGLRenderer();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
 const light = new THREE.PointLight(0x222211, 2, 75, 2);
 const playerOnMaps = new Map();
@@ -361,7 +361,6 @@ function init() {
 
         if (!wasInitOnce) {
             wasInitOnce = true;
-            renderer = new THREE.WebGLRenderer();
             renderer.setClearColor(0x000000);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);

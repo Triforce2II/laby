@@ -17,6 +17,8 @@
 	  "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
 	  "curly": "off",
 	  "object-shorthand": "off",
-	  "no-alert": "off"
+	  "no-alert": "off",
+	  "no-var": "off",
+	  "vars-on-top": "off"
     }
 }
