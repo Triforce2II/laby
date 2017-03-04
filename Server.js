@@ -1,3 +1,6 @@
+/**
+ * @author Kai Hartel (Github: Triforce2II)
+ */
 const path = require('path');
 const conf = require('./config.json');
 const uuid = require('node-uuid');

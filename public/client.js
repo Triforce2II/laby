@@ -1,3 +1,6 @@
+/**
+ * @author Kai Hartel (Github: Triforce2II)
+ */
 var playerId;
 var playerHasTorch = false;
 var connection;
