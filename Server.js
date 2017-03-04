@@ -109,6 +109,7 @@ function allWallsIntact(x, y) {
     return (walls[x][y][0] && walls[x][y][1] && walls[x][y][2] && walls[x][y][3]);
 }
 
+//direction: 0=oben, 1=unten, 2=links, 3=rechts
 function tearDownWall(x, y, direction) {
     walls[x][y][direction] = false;
 }
@@ -117,7 +118,7 @@ function createLabyrinth(width, height) {
     erectWalls(width, height);
     const cellStack = [];
     const numberOfCells = width * height;
-    let currentCell = [
+    let currentCell = [ //random Zelle wird ausgesucht
         randomInt(0, width),
         randomInt(0, height)
     ];
@@ -127,17 +128,16 @@ function createLabyrinth(width, height) {
     const maybeAddCandidate = (xShift, yShift, to, from) => {
         const newX = currentCell[0] + xShift;
         const newY = currentCell[1] + yShift;
-        if (newX >= 0 && newX < width && newY >= 0 && newY < height &&
-            allWallsIntact(newX, newY))
+        if (newX >= 0 && newX < width && newY >= 0 && newY < height && allWallsIntact(newX, newY))
             candidates.push([newX, newY, to, from]);
     };
 
     while (visited < numberOfCells) {
         candidates = [];
-        maybeAddCandidate(-1, 0, 2, 3);
-        maybeAddCandidate(1, 0, 3, 2);
-        maybeAddCandidate(0, -1, 0, 1);
-        maybeAddCandidate(0, 1, 1, 0);
+        maybeAddCandidate(-1, 0, 2, 3); //links
+        maybeAddCandidate(1, 0, 3, 2); //rechts
+        maybeAddCandidate(0, -1, 0, 1); //oben
+        maybeAddCandidate(0, 1, 1, 0); //unten
         if (candidates.length > 0) {
             const candidate = candidates[randomInt(0, candidates.length)];
             tearDownWall(currentCell[0], currentCell[1], candidate[2]);
