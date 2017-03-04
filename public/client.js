@@ -328,7 +328,7 @@ function init() {
             torch.position.y = 2;
             scene.add(torch);
             torches.push(torch);
-            // console.log("Created torch", torch);
+            // console.log("Created torch", torch);s
         }
 
         function placeCrumbBox(x, z) {
