@@ -96,6 +96,7 @@ function initWebsocket() {
                 moveLeft = false;
                 moveRight = false;
                 sprint = false;
+                seconds = 0;
                 velocity.x = 0;
                 velocity.z = 0;
                 controls.getObject().position.x = 0;
