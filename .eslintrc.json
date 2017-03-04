@@ -9,6 +9,14 @@
       "comma-dangle": "off",
       "no-use-before-define": "off",
       "spaced-comment": "off",
-      "no-console": "off"
+      "no-console": "off",
+	  "no-undef": "off",
+	  "prefer-template": "off",
+	  "no-restricted-syntax": "off",
+	  "max-len": "off",
+	  "no-plusplus": ["error", { "allowForLoopAfterthoughts": true }],
+	  "curly": "off",
+	  "object-shorthand": "off",
+	  "no-alert": "off"
     }
 }

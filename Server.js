@@ -13,7 +13,7 @@ const tileWidth = 40;
 const floorWidth = 600;
 const tilesPerRow = floorWidth / tileWidth;
 
-let walls = createLabyrinth(tilesPerRow, tilesPerRow);
+var walls = createLabyrinth(tilesPerRow, tilesPerRow);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -21,11 +21,11 @@ const wss = new WebSocketServer({
     server
 });
 
-wss.on('connection', function(ws) {
+wss.on('connection', (ws) => {
     const playerId = uuid.v4();
 
-    ws.on('message', function(message) {
-        var json = JSON.parse(message);
+    ws.on('message', (message) => {
+        const json = JSON.parse(message);
         if (json.type === 'position') {
             playerLocations[playerId] = json.data;
         } else if (json.type === 'finished') {
@@ -45,14 +45,14 @@ wss.on('connection', function(ws) {
         //console.log('received: %s', message);
     });
 
-    ws.onclose = (event) => {
+    ws.onclose = () => {
         delete playerLocations[playerId];
 
         wss.broadcast(JSON.stringify({
             type: 'playerDeleted',
             playerId
-        }))
-    }
+        }));
+    };
 
     playerLocations[playerId] = {
         x: 0,
@@ -90,9 +90,9 @@ function randomInt(min, max) {
 
 function erectWalls(width, height) {
     walls = [];
-    for (var x = 0; x < width; x++) {
+    for (let x = 0; x < width; ++x) {
         walls[x] = [];
-        for (var y = 0; y < height; y++) {
+        for (let y = 0; y < height; ++y) {
             walls[x][y] = [true, true, true, true, false, false, false];
             if (Math.random() > 0.9) {
                 walls[x][y] = [true, true, true, true, true, false, false];
@@ -105,50 +105,35 @@ function erectWalls(width, height) {
     walls[width - 1][height - 1][5] = true;
 }
 
-// checks if all four walls of the cell (x,y) are intact
 function allWallsIntact(x, y) {
     return (walls[x][y][0] && walls[x][y][1] && walls[x][y][2] && walls[x][y][3]);
 }
 
-// removes the wall of cell (x,y) which is denoted by `direction'
-// (where direction is between 0 and 3 for N, S, W, E - see above)
 function tearDownWall(x, y, direction) {
     walls[x][y][direction] = false;
 }
 
-// builds a grid of walls (see above) and removes one of these walls
-// in a loop until a labyrinth is finished; the labyrinth will consist
-// of `width' * `height' cells
 function createLabyrinth(width, height) {
     erectWalls(width, height);
-    // for the algorithm see
-    // http://en.wikipedia.org/wiki/Maze_generation_algorithm
-    var cellStack = [];
-    var numberOfCells = width * height;
-    // `currentCell' is a two-element array holding the x and y
-    // coordinates of the cell we're currently working on
-    var currentCell = [
+    const cellStack = [];
+    const numberOfCells = width * height;
+    let currentCell = [
         randomInt(0, width),
         randomInt(0, height)
     ];
-    var visited = 1;
+    let visited = 1;
+    let candidates;
 
-    // in a loop, check if a specific neighbor of the current cell still
-    // has all four walls up and if so add this neighbor to
-    // `candidates'; the neighbor is specified by `xShift', `yShift' one
-    // of which is zero while the other is either -1 or 1; each entry
-    // added to `candidates' is a four-element array with the
-    // coordinates of the neighbor and the directions (NSWE, see above)
-    // of the removed walls in the current cell and the neighbor
-    var maybeAddCandidate = function(xShift, yShift, to, from) {
-        var newX = currentCell[0] + xShift;
-        var newY = currentCell[1] + yShift;
+    const maybeAddCandidate = (xShift, yShift, to, from) => {
+        const newX = currentCell[0] + xShift;
+        const newY = currentCell[1] + yShift;
         if (newX >= 0 && newX < width && newY >= 0 && newY < height &&
             allWallsIntact(newX, newY))
             candidates.push([newX, newY, to, from]);
-    }
+    };
+
     while (visited < numberOfCells) {
-        var candidates = [];
+        candidates = [];
         maybeAddCandidate(-1, 0, 2, 3);
         maybeAddCandidate(1, 0, 3, 2);
         maybeAddCandidate(0, -1, 0, 1);
