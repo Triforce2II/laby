@@ -266,7 +266,7 @@ function init() {
 
         const torchGeometry = new THREE.BoxGeometry(1, 5, 1);
         const torchTexture = loader.load('textures/torch.jpg');
-        const torchMaterial = new THREE.MeshPhongMaterial({
+        const torchMaterial = new THREE.MeshBasicMaterial({
             map: torchTexture,
             shininess: 1
         });
