@@ -104,11 +104,17 @@ function initWebsocket() {
                 for (const wall of wallObjects) {
                     scene.remove(wall);
                 }
-                walls = json.walls;
-                wallObjects = [];
+                for (const torch of torches) {
+                    scene.remove(torch);
+                }
+                for (const box of crumbBoxes) {
+                    scene.remove(box);
+                }
                 for (const crumb of crumbs) {
                     scene.remove(crumb);
                 }
+                walls = json.walls;
+                wallObjects = [];
                 crumbs = [];
                 init();
             }
