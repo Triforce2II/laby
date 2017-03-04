@@ -259,14 +259,14 @@ function init() {
 
         const torchGeometry = new THREE.BoxGeometry(1, 5, 1);
         const torchTexture = loader.load('textures/torch.jpg');
-        const torchMaterial = new THREE.MeshBasicMaterial({
+        const torchMaterial = new THREE.MeshPhongMaterial({
             map: torchTexture,
             shininess: 1
         });
 
         const crumbBoxGeometry = new THREE.BoxGeometry(4, 4, 4);
         const crumbBoxTexture = loader.load('textures/box.jpg');
-        const crumbBoxMaterial = new THREE.MeshBasicMaterial({
+        const crumbBoxMaterial = new THREE.MeshPhongMaterial({
             map: crumbBoxTexture,
             shininess: 1
         });
@@ -274,7 +274,7 @@ function init() {
         const doorGeometryX = new THREE.BoxGeometry(tileWidth / 4, (wallHeight / 2) - 6, wallWidth + 2);
         const doorGeometryZ = new THREE.BoxGeometry(wallWidth + 2, (wallHeight / 2) - 6, tileWidth / 4);
         const doorTexture = loader.load('textures/door.jpg');
-        const doorMaterial = new THREE.MeshBasicMaterial({
+        const doorMaterial = new THREE.MeshPhongMaterial({
             map: doorTexture,
             shininess: 1
         });
